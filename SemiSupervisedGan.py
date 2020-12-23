@@ -128,18 +128,3 @@ test_data = get_test_data()
 custom_labeled_data, tiled_data = labeled_data[0], labeled_data[1]
 gan = SemiSupervisedGan(discriminator,generator,custom_labeled_data,unlabeled_data,test_data,tiled_data)
 gan.train_model()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
