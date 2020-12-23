@@ -9,10 +9,10 @@ import tensorboardX
 from Generator import Generator
 from Discriminator import Discriminator
 from Data import *
-
+from torch import logsumexp
 
 DEVICE = device('cuda')
-EPOCHS = 50
+EPOCHS = 1
 BATCH_SIZE = 100
 TENSORBOARD_INTERVAL_LOG = 100
 EVALUATION_INTERVAL = 1
@@ -37,7 +37,7 @@ class SemiSupervisedGan():
         labeled_data, unlabeled_data,targets = labeled_data.to(device=DEVICE), unlabeled_data.to(device=DEVICE), targets.to(device=DEVICE)
         output_labeled_data,output_unlabeled_data= self.Discriminator(labeled_data),self.Discriminator(unlabeled_data)
         fake_output = self.Discriminator(self.Generator(unlabeled_data.size()[0]).view(unlabeled_data.size()).detach())
-        log_z_labeled,log_z_unlabeled,log_z_fake = log_sum_exp(output_labeled_data),log_sum_exp(output_unlabeled_data),log_sum_exp(fake_output)
+        log_z_labeled,log_z_unlabeled,log_z_fake = logsumexp(output_labeled_data, dim=1),logsumexp(output_unlabeled_data,dim=1),logsumexp(fake_output, dim=1)
         prob_labeled = torch.gather(output_labeled_data, 1, targets.unsqueeze(1))
         supervised_loss =  - mean(prob_labeled) + mean(log_z_labeled)
         unsupervised_loss = 0.5 * (
