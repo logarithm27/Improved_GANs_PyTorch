@@ -115,11 +115,6 @@ class SemiSupervisedGan():
         pred = self.predict(x)
         return torch.sum(pred == y)
 
-    def draw(self, batch_size):
-        self.Generator.eval()
-        return self.G(batch_size)
-
-
 generator = Generator(100)
 discriminator = Discriminator()
 labeled_data = get_labeled_data(balanced=True)
