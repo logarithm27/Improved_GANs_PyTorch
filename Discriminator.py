@@ -3,6 +3,7 @@ from torch import device
 from torch import nn
 from torch.nn import *
 from torch.nn.functional import relu
+from torch.nn.functional import leaky_relu_
 from utilities import weight_normalization
 DEVICE = device('cuda')
 

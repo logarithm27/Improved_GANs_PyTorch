@@ -1,7 +1,7 @@
 import torch
 from torch.optim import Adam
 from torch import device
-from utilities import log_sum_exp,tensorboard
+from utilities import tensorboard, feature_matching, cross_entropy_loss
 from torch import mean
 from torch.nn.functional import softplus
 from torch.utils.data import DataLoader
@@ -12,7 +12,7 @@ from Data import *
 from torch import logsumexp
 
 DEVICE = device('cuda')
-EPOCHS = 1
+EPOCHS = 100
 BATCH_SIZE = 100
 TENSORBOARD_INTERVAL_LOG = 100
 EVALUATION_INTERVAL = 1
@@ -34,14 +34,19 @@ class SemiSupervisedGan():
         self.writer_real = tensorboardX.SummaryWriter(f"Tensorboard/Real")
 
     def train_discriminator(self, labeled_data, unlabeled_data,targets):
+        # Compute these with corresponding Device (either CPU or CUDA's GPU)
         labeled_data, unlabeled_data,targets = labeled_data.to(device=DEVICE), unlabeled_data.to(device=DEVICE), targets.to(device=DEVICE)
+        # Train Discriminator with real data (labeled and unlabeled data)
         output_labeled_data,output_unlabeled_data= self.Discriminator(labeled_data),self.Discriminator(unlabeled_data)
+        # Train Discriminator with fake data (generated data)
         fake_output = self.Discriminator(self.Generator(unlabeled_data.size()[0]).view(unlabeled_data.size()).detach())
+        #smooth approximation function to increase accuracy and avoid underflow and overflow when very small or very large numbers are represented
         log_z_labeled,log_z_unlabeled,log_z_fake = logsumexp(output_labeled_data, dim=1),logsumexp(output_unlabeled_data,dim=1),logsumexp(fake_output, dim=1)
+        #probability distribution of the real input data.
         prob_labeled = torch.gather(output_labeled_data, 1, targets.unsqueeze(1))
-        supervised_loss =  - mean(prob_labeled) + mean(log_z_labeled)
+        supervised_loss = -mean(prob_labeled) + mean(softplus(log_z_labeled))
         unsupervised_loss = 0.5 * (
-                    -mean(log_z_unlabeled) + mean(softplus(log_z_unlabeled)) +  # real_data: log Z/(1+Z)
+                    -mean(log_z_unlabeled) + mean(softplus(log_z_unlabeled)) +  # real data: log Z/(1+Z)
                     mean(softplus(log_z_fake)))  # fake_data: log 1/(1+Z)
         loss = supervised_loss + unsupervised_loss
         accuracy = mean((output_labeled_data.max(1)[1] == targets).float())
@@ -52,14 +57,15 @@ class SemiSupervisedGan():
 
     def train_generator(self, unlabeled_data):
         fake = self.Generator(unlabeled_data.size()[0]).view(unlabeled_data.size())
-        mom_gen, fake_output = self.Discriminator(fake, feature=True)
-        mom_unlabeled, _ = self.Discriminator(unlabeled_data, feature=True)
-        mom_gen = mean(mom_gen, dim=0)
-        mom_unlabeled = mean(mom_unlabeled, dim=0)
-        loss = mean((mom_gen - mom_unlabeled) ** 2)
-        self.generator_optimizer.zero_grad()
+        # make feature=True to obtain features from Discriminator's hidden layer
+        fake_feature, fake_output_y_class = self.Discriminator(fake, feature=True)
+        real_unlabeled_feature, _ = self.Discriminator(unlabeled_data, feature=True)
+        fake_feature = mean(fake_feature, dim=0)
+        real_unlabeled_feature = mean(real_unlabeled_feature, dim=0)
+        loss = feature_matching(fake_feature,real_unlabeled_feature)
+        self.generator_optimizer.zero_grad() # set all gradients to zero for each batch, so it doesn't store the back prob calculations from previous probs
         self.discriminator_optimizer.zero_grad()
-        loss.backward()
+        loss.backward() # updating the weights depending on the gradients computed in last backward
         self.generator_optimizer.step()
         return loss.data.to(device=DEVICE)
 
@@ -84,7 +90,7 @@ class SemiSupervisedGan():
                 unsupervised_loss += unlabeled_l
                 accuracy += acc
                 generator_l = self.train_generator(unlabeled_images_2)
-                if epoch > 1 and generator_l > 1: # train generator twice
+                if epoch > 1 and generator_l > 1:
                     generator_l = self.train_generator(unlabeled_images_2)
                 loss += generator_l
                 step = tensorboard(self.writer,batch_number,TENSORBOARD_INTERVAL_LOG,step,len(unlabeled_data_1),labeled_l,unlabeled_l,generator_l,images,

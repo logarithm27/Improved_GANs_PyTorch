@@ -4,6 +4,7 @@ import numpy as np
 from torch import FloatTensor, IntTensor
 from numpy.random import permutation
 from numpy import zeros
+import matplotlib.pyplot as plt
 
 def get_labeled_data(number_of_labeled_samples=100, balanced=True):
     train_dataset = datasets.MNIST('dataset/', train=True, transform=transforms.ToTensor(), download=True) # ToTensor is used to normalize or scales the features (by getting mean values), it takes (Height x Weight x Channel) in the range [0,255] to a tensor in the shape of ( Chanel x Height x Weight) in the range of [0.0, 1.0]

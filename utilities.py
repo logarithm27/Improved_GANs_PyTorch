@@ -2,13 +2,22 @@ import torch
 from torch.nn import *
 from torch.nn.utils import weight_norm
 import torchvision.utils
+from torch.nn import MSELoss, CrossEntropyLoss
 
 def weight_normalization(input_dim,output_dim):
     return weight_norm(Linear(input_dim,output_dim))
 
+def cross_entropy_loss(output_real_data, targets):
+    loss = CrossEntropyLoss()
+    return loss(output_real_data,targets)
+
 def log_sum_exp(x, axis=1):
     max_ = torch.max(x, dim=axis)[0]
     return max_ + torch.log(torch.sum(torch.exp(x - max_.unsqueeze(1)), dim=axis))
+
+def feature_matching(real_features,fake_features):
+    mean_squared_error = MSELoss()
+    return mean_squared_error(real_features,fake_features)
 
 def tensorboard(writer,batch_number,log_interval, step, unlabeled_loader_1_length,
                 supervised_loss, unsupervised_loss, loss, images, Discriminator, Generator, batch_size,writer_real,writer_fake,accuracy):
