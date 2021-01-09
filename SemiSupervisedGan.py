@@ -12,7 +12,7 @@ from Data import *
 from torch import logsumexp
 
 DEVICE = device('cuda')
-EPOCHS = 100
+EPOCHS = 10
 BATCH_SIZE = 100
 TENSORBOARD_INTERVAL_LOG = 100
 EVALUATION_INTERVAL = 1
