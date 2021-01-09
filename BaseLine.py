@@ -1,5 +1,4 @@
 import torch
-import torchvision
 import torch.nn as nn  # All neural network modules, nn.Linear, nn.Conv2d, BatchNorm, Loss functions
 import torch.optim as optim  # For all Optimization algorithms, SGD, Adam, etc.
 import torch.nn.functional as F  # All functions that don't have any parameters
@@ -51,7 +50,6 @@ model = NN(input_size=input_size, num_classes=num_classes).to(device)
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-# optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # Train Network
 for epoch in range(num_epochs):
