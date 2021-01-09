@@ -18,8 +18,8 @@ class Generator(Module):
                                         BatchNorm1d(500, affine=False, eps=1e-6, momentum=0.5),
                                         Softplus())
         self.weight_normalization_ = Sequential(weight_normalization(500,output_dimension),Softplus())
-        weight_initialization.xavier_uniform_(self.dense_layer_1[0].weight)
-        weight_initialization.xavier_uniform_(self.dense_layer_2[0].weight)
+        weight_initialization.kaiming_uniform_(self.dense_layer_1[0].weight)
+        weight_initialization.kaiming_uniform_(self.dense_layer_2[0].weight)
 
     def forward(self,batch_size):
         x = torch.rand(batch_size, self.noise_dimension).to(device=DEVICE)
