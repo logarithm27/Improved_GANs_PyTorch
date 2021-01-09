@@ -7,3 +7,5 @@
 ## Losses and accuracy :\
 \
 ![alt text](tensorb.gif)
+\
+### More details are coming sooner
