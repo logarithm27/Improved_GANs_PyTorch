@@ -11,7 +11,8 @@ from Discriminator import Discriminator
 from Data import *
 from torch import logsumexp
 
-DEVICE = device('cuda')
+GPU = 'cuda'
+CPU = 'cpu'
 EPOCHS = 10
 BATCH_SIZE = 100
 TENSORBOARD_INTERVAL_LOG = 100
@@ -21,8 +22,8 @@ class SemiSupervisedGan():
     def __init__(self, Discriminator, Generator, labeled_data, unlabeled_data,test_data,tiled_data):
         self.Discriminator = Discriminator
         self.Generator = Generator
-        self.Discriminator = self.Discriminator.to(device=DEVICE)
-        self.Generator = self.Generator.to(device=DEVICE)
+        self.Discriminator = self.Discriminator.to(device=GPU)
+        self.Generator = self.Generator.to(device=GPU)
         self.labeled_data = labeled_data
         self.unlabeled_data = unlabeled_data
         self.test_data = test_data
@@ -35,7 +36,7 @@ class SemiSupervisedGan():
 
     def train_discriminator(self, labeled_data, unlabeled_data,targets):
         # Compute these with corresponding Device (either CPU or CUDA's GPU)
-        labeled_data, unlabeled_data,targets = labeled_data.to(device=DEVICE), unlabeled_data.to(device=DEVICE), targets.to(device=DEVICE)
+        labeled_data, unlabeled_data,targets = labeled_data.to(device=GPU), unlabeled_data.to(device=GPU), targets.to(device=GPU)
         # Train Discriminator with real data (labeled and unlabeled data)
         output_labeled_data,output_unlabeled_data= self.Discriminator(labeled_data),self.Discriminator(unlabeled_data)
         # Train Discriminator with fake data (generated data)
@@ -53,7 +54,7 @@ class SemiSupervisedGan():
         self.discriminator_optimizer.zero_grad()
         loss.backward()
         self.discriminator_optimizer.step()
-        return supervised_loss.data.to(device=DEVICE), unsupervised_loss.data.to(device=DEVICE), accuracy
+        return supervised_loss.data.to(device=GPU), unsupervised_loss.data.to(device=GPU), accuracy
 
     def train_generator(self, unlabeled_data):
         fake = self.Generator(unlabeled_data.size()[0]).view(unlabeled_data.size())
@@ -67,7 +68,7 @@ class SemiSupervisedGan():
         self.discriminator_optimizer.zero_grad()
         loss.backward() # updating the weights depending on the gradients computed in last backward
         self.generator_optimizer.step()
-        return loss.data.to(device=DEVICE)
+        return loss.data.to(device=GPU)
 
     def train_model(self):
         step = 0
@@ -82,9 +83,9 @@ class SemiSupervisedGan():
                 batch_number+=1
                 unlabeled_images_2, _ = unlabeled_data_2.next()
                 images, digits = labeled_data.next()
-                images, unlabeled_images_1, unlabeled_images_2 = images.to(device=DEVICE), unlabeled_images_1.to(device=DEVICE), unlabeled_images_2.to(device=DEVICE)
+                images, unlabeled_images_1, unlabeled_images_2 = images.to(device=GPU), unlabeled_images_1.to(device=GPU), unlabeled_images_2.to(device=GPU)
                 digits = digits.type(torch.int64)
-                digits = digits.to(device=DEVICE)
+                digits = digits.to(device=GPU)
                 labeled_l, unlabeled_l, acc = self.train_discriminator(images,unlabeled_images_1, digits)
                 supervised_loss += labeled_l
                 unsupervised_loss += unlabeled_l
@@ -117,7 +118,7 @@ class SemiSupervisedGan():
         for (image, target) in self.test_data:
             images.append(image)
             targets.append(target)
-        x, y = torch.stack(images).to(device=DEVICE), torch.LongTensor(targets).to(device=DEVICE)
+        x, y = torch.stack(images).to(device=GPU), torch.LongTensor(targets).to(device=GPU)
         pred = self.predict(x)
         return torch.sum(pred == y)
 

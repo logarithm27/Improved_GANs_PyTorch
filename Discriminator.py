@@ -4,7 +4,8 @@ from torch import nn
 from torch.nn import *
 from torch.nn.functional import relu
 from utilities import weight_normalization
-DEVICE = device('cuda')
+GPU = 'cuda'
+CPU = 'cpu'
 
 
 class Discriminator(nn.Module):
@@ -23,17 +24,16 @@ class Discriminator(nn.Module):
         self.output_layer = weight_normalization(250, output_dimension)
 
     def forward(self, x, feature = False):
+        # Flattening dimensions
         x = x.view(-1, self.input_dimension)
-        x = x.to(device=DEVICE)
-        noise = torch.randn(x.size()) * 0.3 if self.training else torch.Tensor([0])
-        noise = noise.to(device=DEVICE)
-        x = x + noise
+        x = x.to(device=GPU)
+        """ 
+        Apply ReLu activation function to all layers except output layer       
+        """
         for dense_layer in self.layers:
             x_feature = relu(dense_layer(x))
-            x_feature = x_feature.to(device=DEVICE)
-            noise = torch.randn(x_feature.size()) * 0.5 if self.training else torch.Tensor([0])
-            noise = noise.to(device=DEVICE)
-            x = x_feature + noise
+            x_feature = x_feature.to(device=GPU)
+            x = x_feature
         if feature:
             return x_feature, self.output_layer(x)
         return self.output_layer(x)
