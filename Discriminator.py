@@ -27,11 +27,19 @@ class Discriminator(nn.Module):
         # Flattening dimensions
         x = x.view(-1, self.input_dimension)
         x = x.to(device=GPU)
+        noise = torch.randn(x.size()) * 0.3 if self.training else torch.Tensor([0])
+        noise = noise.to(device=GPU)
+        x = x + noise
+        x = x.to(device=GPU)
         """ 
         Apply ReLu activation function to all layers except output layer       
         """
         for dense_layer in self.layers:
             x_feature = relu(dense_layer(x))
+            x_feature = x_feature.to(device=GPU)
+            noise = torch.randn(x_feature.size()) * 0.5 if self.training else torch.Tensor([0])
+            noise = noise.to(device=GPU)
+            x = x_feature + noise
             x_feature = x_feature.to(device=GPU)
             x = x_feature
         if feature:
