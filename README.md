@@ -6,4 +6,13 @@
 ### Losses and accuracy :
 ![alt text](media_/tensorb.png)
 
-### More details are coming sooner:
+# The proposed techniques in the paper :
+![alt text](media_/Scene4.gif)
+
+# The only technique implemented in the repo is the Feature Matching method :
+### Feature Matching technique principle (1):
+![alt text](media_/Scene3.gif)
+### Feature Matching technique principle (2):
+![alt text](media_/Scene5.gif)
+# The Semi-Supervised Model: How it is built ? :
+![alt text](media_/Scene6.gif)
