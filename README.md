@@ -1,3 +1,5 @@
+## References :
+1. Tim Salimans et al. (2016). Improved Techniques for Training GANs. CoRR, Vol.abs/1606.03498, http://arxiv.org/abs/1606.03498
 # Implementing Feature Matching technique from the paper "Improved Techniques for Training GANs"
 ### Images generated during semi-supervised model training :
 
